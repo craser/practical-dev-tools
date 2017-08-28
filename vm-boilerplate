@@ -11,7 +11,7 @@ if (!file.match(/.vm$/)) {
 fs.readFile(file, 'utf8', function(err, template) {
     var params = [];
     var internals = [];
-    var pattern = /(#(\w+) *\()?\$!?\{?(\w+)\}?/g
+    var pattern = /(#(\w+) *\()?\$!?\{?(\w+)\}?/g;
 	var fileRef = file.replace(/^.*(\/templates\/)/, "$1"); // Translate the absolute system file path to project-specific path.
     console.log('VelocityContext context = new VelocityContext();');
     template.replace(pattern, function(all, prefix, op, param) {
