@@ -1,0 +1,31 @@
+#!/usr/local/bin/node
+
+var fs = require('fs')
+var file = process.argv[2];
+
+if (!file.match(/.vm$/)) {
+    console.log(file + "is not a .vm file.");
+    return;
+}
+
+fs.readFile(file, 'utf8', function(err, template) {
+    var params = [];
+    var internals = [];
+    var pattern = /(#(\w+) *\()?\$!?\{?(\w+)\}?/g
+	var fileRef = file.replace(/^.*(\/templates\/)/, "$1"); // Translate the absolute system file path to project-specific path.
+    console.log('VelocityContext context = new VelocityContext();');
+    template.replace(pattern, function(all, prefix, op, param) {
+        if (prefix && op && (op === 'set')) {
+            if (internals.indexOf(param) < 0) {
+                internals.push(param);
+            }
+        }
+        else if ((params.indexOf(param) < 0) && (internals.indexOf(param) < 0)) {
+            params.push(param);
+            console.log('context.put("' + param + '", "VALUE")');
+        }
+    });
+    console.log('Template template = Velocity.getTemplate("' + fileRef + '");');
+    console.log('template.merge(context, out);'); // 'out' intentionaly unbound.
+});
+

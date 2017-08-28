@@ -1,0 +1,49 @@
+#!/bin/bash
+################################################################################
+# Usage:
+#        tebind [abbreviation] [expansion] <group>
+#
+group=${3}                                              # can specify a group, but not mandatory
+abv=${1}                                                # abbreviation
+exp=${2}                                                # expansion
+
+if [ -z ${group} ]; then
+    group="Bindings"
+fi
+
+for arg in "${abv}"; do
+    if [ -z "${arg}" ]; then
+        echo "usage: `basename ${0}` <abbreviateion> <expansion> [<group>]"
+        exit 10
+    fi
+done
+
+if [ -z "${exp}" ]; then
+    exp=`cat`
+fi
+
+echo "Binding TextExpander snippet in group \"${group}\": [\"${abv}\": \"${exp}\"]"
+
+osascript <<EOF
+tell application "TextExpander"
+	set updated to false
+	set exp to "${exp}"
+	repeat with g in groups
+		tell g
+			repeat with snip in snippets
+				if snip's abbreviation is "${abv}" then
+					set snip's plain text expansion to "${exp}"
+					set snip's label to "${exp}"
+					set updated to true
+				end if
+			end repeat
+		end tell
+	end repeat
+	
+	if updated is not true then
+		tell group "${group}"
+			make new snippet with properties {label:"${exp}", abbreviation:"${abv}", plain text expansion:"${exp}"}
+		end tell
+	end if
+end tell
+EOF
