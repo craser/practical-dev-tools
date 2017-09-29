@@ -1,10 +1,10 @@
-// Array of regexes
 var vips = [
-];
+            /rfukunaga@pacificsunwear.com/
+            ];
 
-// Array of regexes
 var team = [
-];
+            /mirigoyen@pacificsunwear.com/
+            ];
 
 var bounds = {
     vips: [ 5, 10 ],
@@ -20,7 +20,7 @@ function getSenders() {
     team.forEach(function(vip) {
             a.push([ vip, bounds.team[0], bounds.team[1] ]);
         });
-    a.push([ /.*/, bounds.fallback[0], bounds.fallback[1]]); // default;
+    a.push([ /.*/, 20, 40]); // default;
     
     return a;
 }
@@ -31,7 +31,6 @@ function getSenderProfile(sender) {
     for (var i = 0; i < senders.length; i++) {
         var profile = senders[i];
         if (profile[0].test(sender)) {
-            console.log("profile FOUND");
             return profile;
         }
     }
@@ -62,14 +61,14 @@ function checkMailbox(mailbox) {
         var replied = message.wasRepliedTo.get();
         var now = new Date().getTime() / 1000;
         var received = message.dateReceived.get().getTime() / 1000;
-        var age = (now - received);
+        var age = Math.round((now - received) / 60);
         var maxUnread = getMaxUnread(message);
         var maxUnanswered = getMaxUnanswered(message);
         console.log("message: " + message);
         console.log("    read: " + read);
         console.log("    replied: " + replied);
         console.log("    received: " + received);
-        console.log("    age: " + Math.round(age / 60) + " minutes.");
+        console.log("    age: " + age + " minutes.");
         console.log("    maxUnread: " + maxUnread);
         console.log("    maxUnanswered: " + maxUnanswered);
         if (!read && (age > maxUnread)) {
@@ -127,20 +126,36 @@ function checkInboxes() {
 
 function checkForLanguishingEmail() {
     var results = checkInboxes();
-    if (true || results.unread || results.unanswered) {
-        var app = Application("Finder")
-            app.includeStandardAdditions = true; // This is not obvious, and not discoverable, and makes me want to punch someone. 
+    if (results.unread || results.unanswered) {
+        var app = Application.currentApplication(); //Application("Finder")
+        app.includeStandardAdditions = true; // This is not obvious, and not discoverable, and makes me want to punch someone. 
         var text = "Languishing email: " + results.unread + " unread, " + results.unanswered + " unanswered.";
-        var READ_NOW = "Read Now";
+        var BUTTON_IGNORE = "Ignore";
+        var BUTTON_READ_NOW = "Read Now";
         var input = app.displayDialog(text, {
-                buttons: [ "Ignore", READ_NOW ]
+                buttons: [ BUTTON_IGNORE, BUTTON_READ_NOW ],
+                defaultButton: BUTTON_IGNORE
+                
             });
         console.log("Button: " + input.buttonReturned);
-        if (READ_NOW == input.buttonReturned) {
-            Application("Mail").activate()
-                }
+        if (BUTTON_READ_NOW == input.buttonReturned) {
+            Application("Mail").activate();
+        }
+        return 10;
     }
-    return results;
+    else {
+        return 1;
+    }
 }
 
-checkForLanguishingEmail()
+function run() {
+    for (var i = 0; i < arguments.length; i++) {
+        console.log("[" + i + "]: " + arguments[i]);
+    }
+    
+    return (!Application("Mail").frontmost())
+        ? checkForLanguishingEmail()
+        : 1;
+}
+
+
